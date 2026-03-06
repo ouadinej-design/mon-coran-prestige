@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MON CORAN - Excellence Malikite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #030712; color: white; }
+        .arabe { font-family: 'Amiri', serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+
+    <div id="app" class="h-full flex flex-col">
+        <div id="ecran-accueil" class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-950">
+            <i data-lucide="star" class="text-amber-500 mb-6 animate-pulse w-10 h-10"></i>
+            <h1 class="text-6xl font-black italic text-amber-500 tracking-tighter mb-4">MON CORAN</h1>
+            <p class="text-[10px] tracking-[0.5em] text-amber-200/30 mb-20 uppercase font-bold">Édition de Prestige • 2026</p>
+            
+            <div class="grid gap-8 w-full max-w-xs">
+                <button onclick="ouvrir('juz')" class="p-10 bg-gray-900/50 border border-amber-900/20 rounded-[50px] text-amber-500 hover:border-amber-500 transition-all shadow-2xl">
+                    <i data-lucide="layers" class="mx-auto mb-3 w-8 h-8"></i>
+                    <span class="font-black text-xs uppercase tracking-widest">Division par Juz</span>
+                </button>
+                <button onclick="ouvrir('surah')" class="p-10 bg-amber-500 rounded-[50px] text-gray-950 font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                    <i data-lucide="book-open" class="mx-auto mb-3 w-8 h-8"></i>
+                    <span>Par Sourate</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="ecran-lecteur" class="hidden flex-1 flex flex-col h-full bg-gray-950">
+            <header class="p-6 flex justify-between items-center border-b border-white/5">
+                <button onclick="reinitialiser()" class="p-4 bg-red-950/20 text-red-500 rounded-2xl"><i data-lucide="log-out"></i></button>
+                <div class="text-center">
+                    <div class="flex items-center gap-2 justify-center text-amber-500 text-[9px] font-black uppercase mb-1">
+                        <i data-lucide="clock" class="w-3 h-3 animate-pulse"></i> Méditation Active
+                    </div>
+                    <div id="titre-affichage" class="text-xs font-black uppercase text-amber-400 tracking-widest px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">---</div>
+                </div>
+                <button class="p-4 bg-gray-900 text-amber-500 rounded-2xl"><i data-lucide="bookmark"></i></button>
+            </header>
+
+            <main class="flex-1 flex flex-col items-center justify-center px-8 text-center overflow-y-auto">
+                <div id="chargement" class="hidden text-amber-500 animate-pulse font-black text-[10px] uppercase tracking-[0.5em]">Chargement...</div>
+                <div id="zone-texte" class="w-full max-w-3xl py-12">
+                    <p id="ar-txt" class="arabe text-4xl md:text-6xl leading-[2.5] mb-14 text-amber-50 text-right" dir="rtl"></p>
+                    <div class="h-px w-32 bg-amber-900/50 mx-auto mb-12"></div>
+                    <p id="fr-txt" class="text-xl font-medium italic text-gray-400 leading-relaxed"></p>
+                </div>
+            </main>
+
+            <footer class="p-10">
+                <div class="flex items-center gap-3 bg-amber-500 p-4 rounded-[40px] shadow-2xl max-w-md mx-auto">
+                    <button onclick="toggleLangue()" id="btn-fr" class="p-5 rounded-3xl bg-gray-950 text-amber-500 shadow-inner"><i data-lucide="languages"></i></button>
+                    <button onclick="montrerMenu()" class="p-5 text-gray-900/60"><i data-lucide="list"></i></button>
+                    
+                    <div class="flex-1 flex items-center justify-between bg-gray-950/10 rounded-3xl px-5 py-3 text-gray-950 font-black">
+                        <button onclick="change(-1)"><i data-lucide="chevron-left" class="w-7 h-7"></i></button>
+                        <span id="num" class="text-xs">1 / 1</span>
+                        <button onclick="change(1)"><i data-lucide="chevron-right" class="w-7 h-7"></i></button>
+                    </div>
+
+                    <button onclick="change(1)" class="p-5 bg-gray-950 text-amber-500 rounded-3xl shadow-xl active:scale-90"><i data-lucide="check"></i></button>
+                </div>
+            </footer>
+        </div>
+
+        <div id="modal-menu" class="hidden fixed inset-0 z-[100] bg-gray-950 p-10 flex flex-col">
+            <div class="flex justify-between items-center mb-12">
+                <h2 class="font-black text-xs uppercase text-amber-500 tracking-[0.3em]">Choisir</h2>
+                <button onclick="fermerMenu()" class="p-4 bg-white/5 rounded-2xl text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div id="grille-choix" class="flex-1 overflow-y-auto grid grid-cols-2 gap-4 pb-12 no-scrollbar"></div>
+        </div>
+    </div>
+
+    <script>
+        let mode = 'home', val = 1, idx = 0, verses = [], showFr = true;
+        const SOURATES = ["Al-Fatihah", "Al-Baqarah", "Al-Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "Abasa", "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad", "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-Adiyat", "Al-Qari'ah", "At-Takathur", "Al-Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"];
+
+        function ouvrir(m) {
+            mode = m;
+            document.getElementById('ecran-accueil').style.display = 'none';
+            document.getElementById('ecran-lecteur').classList.remove('hidden');
+            charger();
+        }
+
+        async function charger() {
+            document.getElementById('chargement').classList.remove('hidden');
+            document.getElementById('zone-texte').classList.add('hidden');
+            const path = mode === 'surah' ? `surah/${val}` : `juz/${val}`;
+            try {
+                const [ar, fr] = await Promise.all([
+                    fetch(`https://api.alquran.cloud/v1/${path}/quran-uthmani`).then(r => r.json()),
+                    fetch(`https://api.alquran.cloud/v1/${path}/fr.hamidullah`).then(r => r.json())
+                ]);
+                verses = ar.data.ayahs.map((v, i) => ({ t: v.text, f: fr.data.ayahs[i].text }));
+                idx = 0; maj();
+                document.getElementById('titre-affichage').innerText = mode === 'surah' ? SOURATES[val-1] : `JUZ ${val}`;
+            } catch (e) { alert("Erreur API."); }
+            document.getElementById('chargement').classList.add('hidden');
+            document.getElementById('zone-texte').classList.remove('hidden');
+        }
+
+        function maj() {
+            document.getElementById('ar-txt').innerText = verses[idx].t;
+            document.getElementById('fr-txt').innerText = verses[idx].f;
+            document.getElementById('fr-txt').style.display = showFr ? 'block' : 'none';
+            document.getElementById('num').innerText = `${idx + 1} / ${verses.length}`;
+            document.getElementById('btn-fr').className = showFr ? 'p-5 rounded-3xl bg-gray-950 text-amber-500 shadow-inner' : 'p-5 rounded-3xl text-gray-900/40';
+        }
+
+        function change(n) { if (idx + n >= 0 && idx + n < verses.length) { idx += n; maj(); } }
+        function toggleLangue() { showFr = !showFr; maj(); }
+        function reinitialiser() { location.reload(); }
+
+        function montrerMenu() {
+            const g = document.getElementById('grille-choix'); g.innerHTML = '';
+            const list = mode === 'surah' ? SOURATES : Array.from({length:30}, (_,i)=>i+1);
+            list.forEach((n, i) => {
+                const b = document.createElement('button');
+                b.className = "p-6 bg-white/5 border border-white/5 rounded-[30px] text-[10px] font-bold uppercase text-amber-500/60 active:bg-amber-500 active:text-gray-950";
+                b.innerText = mode === 'surah' ? `${i+1}. ${n}` : `Juz ${n}`;
+                b.onclick = () => { val = i+1; fermerMenu(); charger(); };
+                g.appendChild(b);
+            });
+            document.getElementById('modal-menu').classList.remove('hidden');
+        }
+
+        function fermerMenu() { document.getElementById('modal-menu').classList.add('hidden'); }
+        lucide.createIcons();
+    </script>
+</body>
+</html>
