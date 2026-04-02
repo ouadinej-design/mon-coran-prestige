@@ -5,111 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Al-Murshid - Coran Complet</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; padding: 20px; color: #333; }
-        .lecteur-container { background: white; max-width: 500px; margin: 20px auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        h2 { color: #2c3e50; margin-bottom: 20px; }
-        select, input[type="range"] { width: 100%; padding: 12px; margin: 10px 0 20px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
-        .boutons { display: flex; justify-content: space-around; gap: 10px; margin-bottom: 25px; }
-        button { flex: 1; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: transform 0.2s; color: white; }
-        button:active { transform: scale(0.95); }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 15px; display: flex; justify-content: center; }
+        .card { background: white; width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        h2 { color: #1a5f7a; margin-bottom: 5px; }
+        p.subtitle { color: #7f8c8d; font-size: 0.9em; margin-bottom: 25px; }
+        label { display: block; text-align: left; font-weight: bold; margin-bottom: 5px; color: #34495e; }
+        select, input[type="range"] { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #dcdde1; font-size: 16px; }
+        .controls { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; font-size: 14px; }
         .btn-play { background-color: #27ae60; }
         .btn-pause { background-color: #f1c40f; color: #2c3e50; }
         .btn-stop { background-color: #e74c3c; }
-        .vitesse-label { display: block; font-weight: 600; margin-bottom: 5px; text-align: left; }
-        .status { font-size: 0.9em; color: #7f8c8d; margin-top: 10px; }
+        button:active { transform: scale(0.96); }
+        .speed-box { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .info-lecture { margin-top: 15px; font-size: 0.85em; color: #2980b9; font-style: italic; }
     </style>
 </head>
 <body>
 
-<div class="lecteur-container">
+<div class="card">
     <h2>Al-Murshid</h2>
+    <p class="subtitle">Écoute et Apprentissage du Coran</p>
 
-    <label class="vitesse-label">Choisir l'Imam :</label>
-    <select id="listeImams">
-        <option value="https://server8.mp3quran.net/afs/">Mishary Rashid Alafasy</option>
-        <option value="https://server11.mp3quran.net/sds/">Abdurrahmaan As-Sudais</option>
-        <option value="https://server7.mp3quran.net/basit/">Abdul Basit (Murattal)</option>
-        <option value="https://server12.mp3quran.net/maher/">Maher Al-Muaiqly</option>
-        <option value="https://server10.mp3quran.net/minsh/">Mohamed Siddiq El-Minshawi</option>
-        <option value="https://server6.mp3quran.net/shur/">Saud Al-Shuraim</option>
-        <option value="https://server12.mp3quran.net/ajm/">Ahmed Al-Ajmi</option>
+    <label>Récitateur :</label>
+    <select id="selectImam" onchange="chargerNouvelleSource()">
+        <option value="https://server8.mp3quran.net/afs/">Mishary Alafasy (Doux & Mélodieux)</option>
+        <option value="https://server11.mp3quran.net/sds/">Abdul Rahman Al-Sudais (La Mecque)</option>
+        <option value="https://server7.mp3quran.net/s_gmd/">Saad Al-Ghamdi (Clair & Pédagogique)</option>
+        <option value="https://server13.mp3quran.net/husr/">Mahmoud Khalil Al-Husary (Idéal Apprentissage)</option>
+        <option value="https://server11.mp3quran.net/yasser/">Yasser Al-Dosari (Émouvant)</option>
     </select>
 
-    <label class="vitesse-label">Choisir la Sourate :</label>
-    <select id="listeSourates"></select>
+    <label>Sourate :</label>
+    <select id="selectSourate" onchange="chargerNouvelleSource()"></select>
 
-    <div class="boutons">
-        <button class="btn-play" onclick="jouerAudio()">▶ PLAY</button>
+    <div class="controls">
+        <button class="btn-play" onclick="playAudio()">▶ PLAY</button>
         <button class="btn-pause" onclick="pauseAudio()">⏸ PAUSE</button>
         <button class="btn-stop" onclick="stopAudio()">⏹ STOP</button>
     </div>
 
-    <label class="vitesse-label">Vitesse de lecture : <span id="valeurVitesse">1.0</span>x</label>
-    <input type="range" id="vitesseAudio" min="0.5" max="2.0" step="0.1" value="1.0" oninput="changerVitesse()">
+    <div class="speed-box">
+        <label>Vitesse de lecture : <span id="vitesseTexte">1.0</span>x</label>
+        <input type="range" id="vitesseAudio" min="0.5" max="2.0" step="0.1" value="1.0" oninput="ajusterVitesse()">
+    </div>
 
-    <div id="status" class="status">Prêt à l'écoute</div>
-
-    <audio id="lecteurAudio"></audio>
+    <div id="statut" class="info-lecture">Choisissez une sourate pour commencer</div>
+    
+    <audio id="monLecteur"></audio>
 </div>
 
 <script>
-    const lecteur = document.getElementById('lecteurAudio');
-    const selectSourates = document.getElementById('listeSourates');
-    const selectImams = document.getElementById('listeImams');
-    const statusDiv = document.getElementById('status');
+    const lecteur = document.getElementById('monLecteur');
+    const selectSourate = document.getElementById('selectSourate');
+    const selectImam = document.getElementById('selectImam');
+    const statut = document.getElementById('statut');
+    const vitesseTexte = document.getElementById('vitesseTexte');
+    const vitesseSlider = document.getElementById('vitesseAudio');
 
-    // Noms des sourates pour l'affichage
-    const nomsSourates = [
-        "Al-Fatihah", "Al-Baqarah", "Al-Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddathir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "Abasa", "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad", "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-Adiyat", "Al-Qari'ah", "At-Takathur", "Al-Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"
-    ];
+    // Noms des 114 sourates
+    const noms = ["Al-Fatihah", "Al-Baqarah", "Al-Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddathir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "Abasa", "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad", "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-Adiyat", "Al-Qari'ah", "At-Takathur", "Al-Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"];
 
-    // GÉNÉRATION AUTOMATIQUE DES 114 SOURATES
-    function genererSourates() {
+    // 1. Générer la liste des 114 sourates proprement
+    function initialiser() {
         for (let i = 1; i <= 114; i++) {
             let option = document.createElement('option');
-            // Formater le numéro sur 3 chiffres (ex: 1 -> 001)
-            let num = i.toString().padStart(3, '0');
-            option.value = num;
-            option.textContent = i + ". " + nomsSourates[i-1];
-            selectSourates.appendChild(option);
+            let code = i.toString().padStart(3, '0'); // Transforme 1 en 001
+            option.value = code;
+            option.textContent = i + ". " + noms[i-1];
+            selectSourate.appendChild(option);
         }
     }
 
-    function mettreAJourSource() {
-        const urlImam = selectImams.value;
-        const numSourate = selectSourates.value;
-        lecteur.src = urlImam + numSourate + ".mp3";
-        statusDiv.textContent = "Chargement : Sourate " + parseInt(numSourate);
+    // 2. Charger le fichier audio
+    function chargerNouvelleSource() {
+        const urlBase = selectImam.value;
+        const numSourate = selectSourate.value;
+        lecteur.src = urlBase + numSourate + ".mp3";
+        statut.textContent = "Prêt : Sourate " + parseInt(numSourate);
+        lecteur.playbackRate = vitesseSlider.value; // Garde la vitesse choisie
     }
 
-    function jouerAudio() {
-        if (!lecteur.src) mettreAJourSource();
+    function playAudio() {
+        if (!lecteur.src) chargerNouvelleSource();
         lecteur.play();
-        statusDiv.textContent = "Lecture en cours...";
+        statut.textContent = "Lecture en cours...";
     }
 
     function pauseAudio() {
         lecteur.pause();
-        statusDiv.textContent = "Pause";
+        statut.textContent = "En pause";
     }
 
     function stopAudio() {
         lecteur.pause();
         lecteur.currentTime = 0;
-        statusDiv.textContent = "Arrêté";
+        statut.textContent = "Arrêté";
     }
 
-    function changerVitesse() {
-        const v = document.getElementById('vitesseAudio').value;
+    function ajusterVitesse() {
+        const v = vitesseSlider.value;
         lecteur.playbackRate = v;
-        document.getElementById('valeurVitesse').innerText = v;
+        vitesseTexte.textContent = v;
     }
 
-    // Initialisation
-    genererSourates();
-    selectImams.onchange = () => { mettreAJourSource(); jouerAudio(); };
-    selectSourates.onchange = () => { mettreAJourSource(); jouerAudio(); };
-
+    // Lancement automatique au chargement de la page
+    initialiser();
 </script>
 
 </body>
